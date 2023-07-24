@@ -118,7 +118,7 @@ def get_course(message, name, surname, phone):
     connection.commit()
     bot.send_message(
         message.chat.id,
-        f'Ура! Вы успешно записались на курс {course}!',
+        f'Ура! Вы успешно записались на курс {message.text}!',
         reply_markup=telebot.types.ReplyKeyboardRemove()
     )
 
