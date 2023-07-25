@@ -116,6 +116,7 @@ def get_course(message, name, surname, phone):
     cursor.execute('''
     INSERT INTO clients ( name, surname, phone, course) VALUES (?, ?, ?, ?)''', (name, surname, phone, course))
     connection.commit()
+    # Убираем меню командой ReplyKeyboardRemove.
     bot.send_message(
         message.chat.id,
         f'Ура! Вы успешно записались на курс {message.text}!',
