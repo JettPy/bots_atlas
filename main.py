@@ -29,6 +29,13 @@ cursor.execute('''
 ''')
 connection.commit()
 
+admin_password = "qwerty"
+
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS admins(id INTEGER PRIMARY KEY, username TEXT NOT NULL)
+''')
+connection.commit()
+
 
 # Функционал бота
 
@@ -48,6 +55,11 @@ def timetable(message):
 
 @bot.message_handler(commands=['add_lesson'])
 def add_lesson(message):
+    cursor.execute('''SELECT * FROM admins WHERE username = (?)''', (message.from_user.username,))
+    username_fetch = cursor.fetchone()
+    if username_fetch is None:
+        bot.send_message(message.chat.id, 'У вас нет прав для этого действия')
+        return
     bot.send_message(message.chat.id, 'Введите название курса')
     bot.register_next_step_handler(message, get_timetable_course)
 
@@ -77,6 +89,34 @@ def get_timetable_address(message, course_title, date, time):
             INSERT INTO timetable (course, time, date, address) VALUES (?, ?, ?, ?)''', (course, time, date, message.text))
     connection.commit()
     bot.send_message(message.chat.id, 'Замечательно! Вы добавили новое занятие!')
+
+
+@bot.message_handler(commands=['get_superuser_rights'])
+def get_superuser_rights(message):
+    bot.send_message(message.chat.id, 'Введите пароль администратора')
+    bot.register_next_step_handler(message, check_password)
+
+
+def check_password(message):
+    password = message.text
+    global admin_password
+    if password == admin_password:
+        cursor.execute('''SELECT * FROM admins WHERE username = (?)''', (message.from_user.username,))
+        username_fetch = cursor.fetchone()
+        if username_fetch is None:
+            cursor.execute('''INSERT INTO admins (username) VALUES (?)''', (message.from_user.username,))
+            connection.commit()
+        bot.send_message(message.chat.id, 'Вам выданы права администратора')
+    else:
+        bot.send_message(message.chat.id, 'Пароль неверный')
+    bot.delete_message(message.chat.id, message.id)
+
+
+@bot.message_handler(commands=['logout'])
+def logout(message):
+    cursor.execute('''DELETE FROM admins WHERE username = (?)''', (message.from_user.username,))
+    connection.commit()
+    bot.send_message(message.chat.id, 'Вы вышли')
 
 
 bot.infinity_polling()
