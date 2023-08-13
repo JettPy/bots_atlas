@@ -178,7 +178,7 @@ def timetable(message):
     timetable = cursor.fetchall()
     if len(timetable) > 0:
         for entry in timetable:
-            cursor.execute('''SELECT title FROM courses WHERE id = (?)''', (entry[0],))
+            cursor.execute('''SELECT title FROM courses WHERE id = (?)''', (entry[1],))
             course = cursor.fetchone()[0]
             answer += f'\n{course} ({entry[3]} / {entry[2]}):\nАдрес: {entry[4]}'
     else:
